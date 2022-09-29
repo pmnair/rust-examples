@@ -1,13 +1,13 @@
 use std::thread;
 use std::sync::mpsc::{self, Sender, Receiver};
 
-/// Generic Event Manager
+/// Generic Event Handler
 ///
-/// A generic implementation of event manager that can be used with
+/// A generic implementation of event handler that can be used with
 /// custom event definition.
 ///
 /// ```
-/// use eventmanager::EventManager;
+/// use eventhandler::EventHandler;
 /// #[derive(Debug)]
 /// enum Event {
 ///     String(&'static str),
@@ -15,7 +15,7 @@ use std::sync::mpsc::{self, Sender, Receiver};
 ///     Empty
 /// }
 ///
-/// let ev_mgr = EventManager::new( |ev: Event| {
+/// let ev_mgr = EventHandler::new( |ev: Event| {
 ///     match ev {
 ///         Event::String(s) => {
 ///             println!("Event: String \"{}\"", s)
@@ -34,13 +34,13 @@ use std::sync::mpsc::{self, Sender, Receiver};
 /// ev_mgr.send(Event::Empty);
 /// ```
 ///
-pub struct EventManager<T> {
+pub struct EventHandler<T> {
     thread: Option<thread::JoinHandle<()>>,
     sender: Option<Sender<T>>
 }
 
-impl <T: Sync + Send + 'static>EventManager<T> {
-    /// Create a new event manager with handler function
+impl <T: Sync + Send + 'static>EventHandler<T> {
+    /// Create a new event handler with handler function
     pub fn new<F>(handler: F) -> Self
         where F: Fn(T) + Send + 'static,
                 T: Send + 'static
@@ -50,7 +50,7 @@ impl <T: Sync + Send + 'static>EventManager<T> {
 
         // start handler trhead
         let thread = thread::spawn( move || {
-            println!("Event Manager ready..");
+            println!("Event EventHandler ready..");
             loop {
                 // wait, read and process events
                 match rx.recv() {
@@ -60,17 +60,17 @@ impl <T: Sync + Send + 'static>EventManager<T> {
                         handler(event);
                     }
                     Err(e) => {
-                        eprintln!("Event Manager exiting.. {}", e);
+                        eprintln!("Event EventHandler exiting.. {}", e);
                         break;
                     }
                 }
             }
         });
 
-        EventManager{ thread: Some(thread), sender: Some(tx) }
+        EventHandler{ thread: Some(thread), sender: Some(tx) }
     }
 
-    /// Send event to event manager
+    /// Send event to event handler
     pub fn send(&self, event: T)
     {
         self.sender.as_ref().unwrap().send(event).unwrap();
@@ -79,7 +79,7 @@ impl <T: Sync + Send + 'static>EventManager<T> {
 }
 
 /// Graceful shutdown and cleanup
-impl <T>Drop for EventManager<T> {
+impl <T>Drop for EventHandler<T> {
     fn drop(&mut self) {
         // Close the channel
         drop(self.sender.take());
@@ -101,7 +101,7 @@ mod tests {
     }
     #[test]
     fn test_eventmgr() {
-        let ev_mgr = EventManager::new(|event: TestEvent| {
+        let ev_mgr = EventHandler::new(|event: TestEvent| {
             match event {
                 TestEvent::TestString(s) => println!("TestString: {}", s),
                 TestEvent::TestRaw(d) => println!("TestRaw: {:x?}", d),

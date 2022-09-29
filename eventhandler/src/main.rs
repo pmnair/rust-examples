@@ -1,8 +1,8 @@
 
-use eventmanager::*;
+use eventhandler::*;
 
 fn main() {
-    let ev_mgr = EventManager::new(|event: Event| {
+    let ev_mgr = EventHandler::new(|event: Event| {
         match event {
             Event::One(s) => println!("Event::One: {}", s),
             Event::Two(d) => println!("Event::Two: {:x?}", d),
