@@ -12,7 +12,7 @@ use std::fs;
 ///
 /// Example send & recv newline terminated strings
 /// ```
-/// use unixsockmon::Monitor;
+/// use unixsockmon::SockMonitor;
 /// use std::{thread, time, fs};
 ///
 /// //the reciever
@@ -20,8 +20,8 @@ use std::fs;
 ///     fs::remove_file("/tmp/mon_ex1.sock").unwrap();
 /// }
 /// thread::spawn(|| {
-///     let mon = Monitor::new("/tmp/mon_ex1.sock");
-///     mon.serve(Monitor::read_line, move |req| {
+///     let mon = SockMonitor::new("/tmp/mon_ex1.sock");
+///     mon.serve(SockMonitor::read_line, move |req| {
 ///         println!("{}", req);
 ///         Ok("OK".to_string())
 ///     }).unwrap();
@@ -32,16 +32,16 @@ use std::fs;
 ///     thread::sleep(time::Duration::from_millis(500));
 /// }
 ///
-/// let client = Monitor::new("/tmp/mon_ex1.sock");
+/// let client = SockMonitor::new("/tmp/mon_ex1.sock");
 /// // string can be with or without newline
-/// let resp = client.send_string("Hello World");
+/// let resp = client.send_string("a fox jumps over the lazy dog");
 /// assert!(resp.is_ok());
 /// assert_eq!(resp.unwrap(), "OK");
 /// ```
 /// 
 /// Example send & recv byte arrays
 /// ```
-/// use unixsockmon::Monitor;
+/// use unixsockmon::SockMonitor;
 /// use std::{thread, time, fs};
 ///
 /// //the reciever
@@ -49,8 +49,8 @@ use std::fs;
 ///     fs::remove_file("/tmp/mon_ex2.sock").unwrap();
 /// }
 /// thread::spawn(|| {
-///     let mon = Monitor::new("/tmp/mon_ex2.sock");
-///     mon.serve(Monitor::read_bytes, move |req| {
+///     let mon = SockMonitor::new("/tmp/mon_ex2.sock");
+///     mon.serve(SockMonitor::read_bytes, move |req| {
 ///         println!("{}", req);
 ///         Ok("OK".to_string())
 ///     }).unwrap();
@@ -61,22 +61,22 @@ use std::fs;
 ///     thread::sleep(time::Duration::from_millis(500));
 /// }
 ///
-/// let client = Monitor::new("/tmp/mon_ex2.sock");
+/// let client = SockMonitor::new("/tmp/mon_ex2.sock");
 /// // message is a byte array with a leading message length
-/// let msg = "Hello World";
+/// let msg = "a fox jumps over the lazy dog";
 /// let resp = client.send_bytes(msg.as_bytes());
 /// assert!(resp.is_ok());
 /// assert_eq!(resp.unwrap(), "OK");
 /// ```
 ///
-pub struct Monitor {
+pub struct SockMonitor {
     sock: String
 }
 
-impl Monitor {
+impl SockMonitor {
     /// Create a new named socket monitor
     pub fn new(sock: &str) -> Self {
-        Monitor { sock: sock.to_string() }
+        SockMonitor { sock: sock.to_string() }
     }
 
     /// Read a newline terminated string; return string has
@@ -208,50 +208,50 @@ mod tests {
 
     #[test]
     fn test_mon_string() {
-        if fs::metadata("/tmp/mon.sock").is_ok() {
-            fs::remove_file("/tmp/mon.sock").unwrap();
+        if fs::metadata("/tmp/mon-line.sock").is_ok() {
+            fs::remove_file("/tmp/mon-line.sock").unwrap();
         }
 
         thread::spawn(|| {
-            let mon = Monitor::new("/tmp/mon.sock");
-            mon.serve(Monitor::read_line, move |req| {
+            let mon = SockMonitor::new("/tmp/mon-line.sock");
+            mon.serve(SockMonitor::read_line, move |req| {
                 println!("{}", req);
-                assert_eq!(req, "Hello World");
+                assert_eq!(req, "a fox jumps over the lazy dog");
                 Ok("OK".to_string())
             }).unwrap();
         });
 
-        while !fs::metadata("/tmp/mon.sock").is_ok() {
+        while !fs::metadata("/tmp/mon-line.sock").is_ok() {
             thread::sleep(time::Duration::from_millis(500));
         }        
-        let client = Monitor::new("/tmp/mon.sock");
-        let resp = client.send_string("Hello World\n");
+        let client = SockMonitor::new("/tmp/mon-line.sock");
+        let resp = client.send_string("a fox jumps over the lazy dog\n");
         assert!(resp.is_ok());
         assert_eq!(resp.unwrap(), "OK");
-        let resp = client.send_string("Hello World");
+        let resp = client.send_string("a fox jumps over the lazy dog");
         assert!(resp.is_ok());
         assert_eq!(resp.unwrap(), "OK");
     }
     #[test]
     fn test_mon_bytes() {
-        if fs::metadata("/tmp/mon_bytes.sock").is_ok() {
-            fs::remove_file("/tmp/mon_bytes.sock").unwrap();
+        if fs::metadata("/tmp/mon-bytes.sock").is_ok() {
+            fs::remove_file("/tmp/mon-bytes.sock").unwrap();
         }
 
         thread::spawn(|| {
-            let mon = Monitor::new("/tmp/mon_bytes.sock");
-            mon.serve(Monitor::read_bytes, move |req| {
+            let mon = SockMonitor::new("/tmp/mon-bytes.sock");
+            mon.serve(SockMonitor::read_bytes, move |req| {
                 println!("{}", req);
-                assert_eq!(req, "Hello World");
+                assert_eq!(req, "a fox jumps over the lazy dog");
                 Ok("OK".to_string())
             }).unwrap();
         });
 
-        while !fs::metadata("/tmp/mon_bytes.sock").is_ok() {
+        while !fs::metadata("/tmp/mon-bytes.sock").is_ok() {
             thread::sleep(time::Duration::from_millis(500));
         }        
-        let client = Monitor::new("/tmp/mon_bytes.sock");
-        let msg = "Hello World";
+        let client = SockMonitor::new("/tmp/mon-bytes.sock");
+        let msg = "a fox jumps over the lazy dog";
         let resp = client.send_bytes(msg.as_bytes());
         assert!(resp.is_ok());
         assert_eq!(resp.unwrap(), "OK");

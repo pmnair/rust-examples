@@ -1,5 +1,5 @@
 use std::{env, fs, thread, time};
-use unixsockmon::Monitor;
+use unixsockmon::SockMonitor;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -21,7 +21,7 @@ fn client(sock: &str, msg: &str) {
     while !fs::metadata(sock).is_ok() {
         thread::sleep(time::Duration::from_millis(500));
     }        
-    let client = Monitor::new(sock);
+    let client = SockMonitor::new(sock);
     let resp = client.send_string(&format!("{}\n", msg));
     assert!(resp.is_ok());
     assert_eq!(resp.unwrap(), "OK");
@@ -32,8 +32,8 @@ fn server(sock: &str) {
         fs::remove_file(sock).unwrap();
     }
 
-    let mon = Monitor::new(sock);
-    mon.serve(Monitor::read_line, move |req| {
+    let mon = SockMonitor::new(sock);
+    mon.serve(SockMonitor::read_line, move |req| {
         println!("Server: {}", req);
         Ok("OK".to_string())
     }).unwrap();
