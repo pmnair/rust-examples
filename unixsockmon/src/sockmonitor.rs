@@ -34,7 +34,7 @@ use std::fs;
 ///
 /// let client = SockMonitor::new("/tmp/mon_ex1.sock");
 /// // string can be with or without newline
-/// let resp = client.send_string("a fox jumps over the lazy dog");
+/// let resp = client.send_string("the quick brown fox jumps over the lazy dog");
 /// assert!(resp.is_ok());
 /// assert_eq!(resp.unwrap(), "OK");
 /// ```
@@ -63,7 +63,7 @@ use std::fs;
 ///
 /// let client = SockMonitor::new("/tmp/mon_ex2.sock");
 /// // message is a byte array with a leading message length
-/// let msg = "a fox jumps over the lazy dog";
+/// let msg = "the quick brown fox jumps over the lazy dog";
 /// let resp = client.send_bytes(msg.as_bytes());
 /// assert!(resp.is_ok());
 /// assert_eq!(resp.unwrap(), "OK");
@@ -216,7 +216,7 @@ mod tests {
             let mon = SockMonitor::new("/tmp/mon-line.sock");
             mon.serve(SockMonitor::read_line, move |req| {
                 println!("{}", req);
-                assert_eq!(req, "a fox jumps over the lazy dog");
+                assert_eq!(req, "the quick brown fox jumps over the lazy dog");
                 Ok("OK".to_string())
             }).unwrap();
         });
@@ -225,10 +225,10 @@ mod tests {
             thread::sleep(time::Duration::from_millis(500));
         }        
         let client = SockMonitor::new("/tmp/mon-line.sock");
-        let resp = client.send_string("a fox jumps over the lazy dog\n");
+        let resp = client.send_string("the quick brown fox jumps over the lazy dog\n");
         assert!(resp.is_ok());
         assert_eq!(resp.unwrap(), "OK");
-        let resp = client.send_string("a fox jumps over the lazy dog");
+        let resp = client.send_string("the quick brown fox jumps over the lazy dog");
         assert!(resp.is_ok());
         assert_eq!(resp.unwrap(), "OK");
     }
@@ -242,7 +242,7 @@ mod tests {
             let mon = SockMonitor::new("/tmp/mon-bytes.sock");
             mon.serve(SockMonitor::read_bytes, move |req| {
                 println!("{}", req);
-                assert_eq!(req, "a fox jumps over the lazy dog");
+                assert_eq!(req, "the quick brown fox jumps over the lazy dog");
                 Ok("OK".to_string())
             }).unwrap();
         });
@@ -251,7 +251,7 @@ mod tests {
             thread::sleep(time::Duration::from_millis(500));
         }        
         let client = SockMonitor::new("/tmp/mon-bytes.sock");
-        let msg = "a fox jumps over the lazy dog";
+        let msg = "the quick brown fox jumps over the lazy dog";
         let resp = client.send_bytes(msg.as_bytes());
         assert!(resp.is_ok());
         assert_eq!(resp.unwrap(), "OK");
